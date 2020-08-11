@@ -2,10 +2,11 @@ from telegram import InlineKeyboardMarkup
 from telegram.message import Message
 from telegram.update import Update
 import time
-import psutil
+import psutil, shutil
+import signal
 from bot import AUTO_DELETE_MESSAGE_DURATION, LOGGER, bot, \
-    status_reply_dict, status_reply_dict_lock
-from bot.helper.ext_utils.bot_utils import get_readable_message
+    status_reply_dict, status_reply_dict_lock, dispatcher, updater, botStartTime
+from bot.helper.ext_utils.bot_utils import get_readable_message, get_readable_time, get_readable_file_size
 from telegram.error import TimedOut, BadRequest
 from bot import bot
 
@@ -74,10 +75,16 @@ def delete_all_messages():
 
 
 def update_all_messages():
+    currentTime = get_readable_time((time.time() - botStartTime))
+    total, used, free = shutil.disk_usage('.')
+    total = get_readable_file_size(total)
+    used = get_readable_file_size(used)
+    free = get_readable_file_size(free)
     msg = get_readable_message()
-    msg += f"<b>CPU:</b> {psutil.cpu_percent()}%" \
-           f" <b>DISK:</b> {psutil.disk_usage('/').percent}%" \
-           f" <b>RAM:</b> {psutil.virtual_memory().percent}%"
+    msg += f"𝗖𝗣𝗨 📟: {psutil.cpu_percent()}%" \
+           f" 𝗗𝗜𝗦𝗞💿: {psutil.disk_usage('/').percent}%" \
+           f" 𝗥𝗔𝗠 💾: {psutil.virtual_memory().percent}%" \
+           f"\n𝗕𝗼𝘁 𝗨𝗽𝘁𝗶𝗺𝗲 : {currentTime} | 𝗙𝗿𝗲𝗲🤯: {free}"
     with status_reply_dict_lock:
         for chat_id in list(status_reply_dict.keys()):
             if status_reply_dict[chat_id] and msg != status_reply_dict[chat_id].text:
@@ -89,10 +96,16 @@ def update_all_messages():
 
 
 def sendStatusMessage(msg, bot):
+    currentTime = get_readable_time((time.time() - botStartTime))
+    total, used, free = shutil.disk_usage('.')
+    total = get_readable_file_size(total)
+    used = get_readable_file_size(used)
+    free = get_readable_file_size(free)
     progress = get_readable_message()
-    progress += f"<b>CPU:</b> {psutil.cpu_percent()}%" \
-           f" <b>DISK:</b> {psutil.disk_usage('/').percent}%" \
-           f" <b>RAM:</b> {psutil.virtual_memory().percent}%"
+    progress += f"𝗖𝗣𝗨 📟: {psutil.cpu_percent()}%" \
+           f" 𝗗𝗜𝗦𝗞💿: {psutil.disk_usage('/').percent}%" \
+           f" 𝗥𝗔𝗠 💾: {psutil.virtual_memory().percent}%" \
+           f"\n𝗕𝗼𝘁 𝗨𝗽𝘁𝗶𝗺𝗲 : {currentTime} | 𝗙𝗿𝗲𝗲 🤯: {free}"
     with status_reply_dict_lock:
         if msg.message.chat.id in list(status_reply_dict.keys()):
             try:
